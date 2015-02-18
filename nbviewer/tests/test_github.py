@@ -81,7 +81,6 @@ class GitHubTestCase(NBViewerTestCase):
         self.assertEqual(r.status_code, 200)
         # verify redirect
         self.assertIn('/github/ipython/ipython/blob/rel-2.0.0/examples', r.request.url)
-    
 
     def test_github_rawusercontent_redirect(self):
         """Test GitHub's new raw domain"""
@@ -118,7 +117,6 @@ class GitHubTestCase(NBViewerTestCase):
         self.assertEqual(r.status_code, 200)
         self.assertIn("__init__.py", r.text)
 
-
     def test_github_tree_redirect(self):
         url = self.url("github/ipython/ipython/tree/rel-2.0.0/MANIFEST.in")
         r = requests.get(url)
@@ -144,6 +142,18 @@ class GitHubTestCase(NBViewerTestCase):
         self.assertIn('/github/ipython/ipython/tree/2.x/', html)
         # verify tag is linked
         self.assertIn('/github/ipython/ipython/tree/rel-2.3.0/', html)
+
+    def test_github_slash_ref_blob(self):
+        url = self.url(
+            '/github/remram44/ipython-nbviewer/blob/wrong/branch/test.ipynb'
+        )
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+
+    def test_github_slash_ref_list(self):
+        url = self.url('/github/remram44/ipython-nbviewer/tree/wrong/branch/')
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
 
 
 class FormatHTMLGitHubTestCase(NBViewerTestCase, FormatHTMLMixin):
