@@ -791,7 +791,23 @@ class GitHubRepoHandler(BaseHandler):
         self.redirect("%s/github/%s/%s/tree/master/" % (self.format_prefix, user, repo))
 
 
-class GitHubTreeHandler(BaseHandler):
+
+class RefMixin(object):
+    @gen.coroutine
+    def refs(self, user, repo):
+        """get branches and tags for this user/repo"""
+        ref_types = ("branches", "tags")
+        ref_data = [None, None]
+
+        for i, ref_type in enumerate(ref_types):
+            with self.catch_client_error():
+                response = yield getattr(self.github_client, "get_%s" % ref_type)(user, repo)
+            ref_data[i] = json.loads(response_text(response))
+
+        raise gen.Return(ref_data)
+
+
+class GitHubTreeHandler(BaseHandler, RefMixin):
     """list files in a github repo (like github tree)"""
     @cached
     @gen.coroutine
@@ -800,12 +816,32 @@ class GitHubTreeHandler(BaseHandler):
             self.redirect(self.request.uri + '/')
             return
         path = path.rstrip('/')
+
         with self.catch_client_error():
-            response = yield self.github_client.get_contents(user, repo, path, ref=ref)
+            branches, tags = yield self.refs(user, repo)
+
+            try:
+                response = yield self.github_client.get_contents(
+                    user, repo, path, ref=ref
+                )
+            except Exception as err:
+                if err.code == 404:
+                    ref_path = "%s/%s" % (ref, path)
+                    for other_ref in branches + tags:
+                        if ref == other_ref["name"]:
+                            continue
+                        if ref_path.startswith(other_ref["name"]):
+                            client = self.github_client
+                            path = ref_path[len(other_ref["name"]) + 1:] + "/"
+                            ref = other_ref["commit"]["sha"]
+                            response = yield client.get_contents(
+                                user, repo, path, ref=ref
+                            )
+                            break
+                else:
+                    raise err
 
         contents = json.loads(response_text(response))
-
-        branches, tags = yield self.refs(user, repo)
 
         for nav_ref in branches + tags:
             nav_ref["url"] = (u"/github/{user}/{repo}/tree/{ref}/{path}"
@@ -881,21 +917,8 @@ class GitHubTreeHandler(BaseHandler):
         )
         yield self.cache_and_finish(html)
 
-    @gen.coroutine
-    def refs(self, user, repo):
-        """get branches and tags for this user/repo"""
-        ref_types = ("branches", "tags")
-        ref_data = [None, None]
 
-        for i, ref_type in enumerate(ref_types):
-            with self.catch_client_error():
-                response = yield getattr(self.github_client, "get_%s" % ref_type)(user, repo)
-            ref_data[i] = json.loads(response_text(response))
-
-        raise gen.Return(ref_data)
-
-
-class GitHubBlobHandler(RenderingHandler):
+class GitHubBlobHandler(RenderingHandler, RefMixin):
     """handler for files on github
 
     If it's a...
@@ -914,9 +937,27 @@ class GitHubBlobHandler(RenderingHandler):
             user=user, repo=repo, ref=ref, path=quote(path),
         )
         with self.catch_client_error():
-            tree_entry = yield self.github_client.get_tree_entry(
-                user, repo, path=path, ref=ref
-            )
+            try:
+                tree_entry = yield self.github_client.get_tree_entry(
+                    user, repo, path=path, ref=ref
+                )
+            except Exception as err:
+                if err.code == 404:
+                    branches, tags = yield self.refs(user, repo)
+                    ref_path = "%s/%s" % (ref, path)
+                    for other_ref in branches + tags:
+                        if ref == other_ref["name"]:
+                            continue
+                        if ref_path.startswith(other_ref["name"]):
+                            client = self.github_client
+                            path = ref_path[len(other_ref["name"]) + 1:]
+                            ref = other_ref["commit"]["sha"]
+                            tree_entry = yield client.get_tree_entry(
+                                user, repo, ref=ref, path=path
+                            )
+                            break
+                else:
+                    raise err
 
         if tree_entry['type'] == 'tree':
             tree_url = "/github/{user}/{repo}/tree/{ref}/{path}/".format(
