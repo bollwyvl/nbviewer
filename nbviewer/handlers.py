@@ -825,7 +825,7 @@ class GitHubTreeHandler(BaseHandler, RefMixin):
                     user, repo, path, ref=ref
                 )
             except Exception as err:
-                if err.code == 404:
+                if getattr(err, "code", None) == 404:
                     ref_path = "%s/%s" % (ref, path)
                     for other_ref in branches + tags:
                         if ref == other_ref["name"]:
@@ -942,7 +942,7 @@ class GitHubBlobHandler(RenderingHandler, RefMixin):
                     user, repo, path=path, ref=ref
                 )
             except Exception as err:
-                if err.code == 404:
+                if getattr(err, "code", None) == 404:
                     branches, tags = yield self.refs(user, repo)
                     ref_path = "%s/%s" % (ref, path)
                     for other_ref in branches + tags:
