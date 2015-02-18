@@ -99,7 +99,6 @@ class AsyncGitHubClient(object):
         callback and **kwargs are passed to client.fetch unmodified.
         """
         url = url_path_join(self.github_api_url, path)
-        print url
         return self.fetch(url, callback, **kwargs)
 
     def get_gist(self, gist_id, callback=None, **kwargs):
