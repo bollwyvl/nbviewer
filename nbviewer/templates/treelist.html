@@ -13,10 +13,14 @@
 {% endmacro %}
 
 
-{% macro ref_dropdown(current, branches, tags) -%}
+{% macro ref_dropdown(current, symbolic_ref, branches, tags) -%}
     <div class="pull-right dropdown dropdown-ref">
         <a class="dropdown-toggle" data-toggle="dropdown">
+          {% if symbolic_ref %}
+            {{ symbolic_ref }}
+          {% else %}
             {{ current }}
+          {% endif %}
         </a>
         <div class="dropdown-menu" role="menu">
             <div class="row-fluid">
@@ -31,7 +35,7 @@
     <div>
         {% if branches|length + tags|length > 1 %}
             <div class="breadcrumb pull-right">
-                {{ ref_dropdown(ref, branches, tags) }}
+                {{ ref_dropdown(ref, symbolic_ref, branches, tags) }}
             </div>
         {% endif %}
         {{ link_breadcrumbs(breadcrumbs) }}

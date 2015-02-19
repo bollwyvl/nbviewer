@@ -816,6 +816,7 @@ class GitHubTreeHandler(BaseHandler, RefMixin):
             self.redirect(self.request.uri + '/')
             return
         path = path.rstrip('/')
+        symbolic_ref = None
 
         with self.catch_client_error():
             branches, tags = yield self.refs(user, repo)
@@ -832,12 +833,14 @@ class GitHubTreeHandler(BaseHandler, RefMixin):
                             continue
                         if ref_path.startswith(other_ref["name"]):
                             client = self.github_client
-                            path = ref_path[len(other_ref["name"]) + 1:] + "/"
+                            path = ref_path[len(other_ref["name"]) + 1:]
                             ref = other_ref["commit"]["sha"]
+                            symbolic_ref = other_ref["name"]
                             response = yield client.get_contents(
                                 user, repo, path, ref=ref
                             )
                             break
+                    raise err
                 else:
                     raise err
 
@@ -856,7 +859,8 @@ class GitHubTreeHandler(BaseHandler, RefMixin):
             )
             self.redirect(
                 u"{format}/github/{user}/{repo}/blob/{ref}/{path}".format(
-                    format=self.format_prefix, user=user, repo=repo, ref=ref, path=path,
+                    format=self.format_prefix, user=user, repo=repo, path=path,
+                    ref=symbolic_ref or ref
                 )
             )
             return
@@ -865,7 +869,7 @@ class GitHubTreeHandler(BaseHandler, RefMixin):
             user=user, repo=repo, ref=ref,
         )
         github_url = u"https://github.com/{user}/{repo}/tree/{ref}/{path}".format(
-            user=user, repo=repo, ref=ref, path=path,
+            user=user, repo=repo, path=path, ref=symbolic_ref or ref
         )
 
         breadcrumbs = [{
@@ -873,7 +877,7 @@ class GitHubTreeHandler(BaseHandler, RefMixin):
             'name' : repo,
         }]
         breadcrumbs.extend(self.breadcrumbs(path, base_url))
-
+        
         entries = []
         dirs = []
         ipynbs = []
@@ -883,14 +887,14 @@ class GitHubTreeHandler(BaseHandler, RefMixin):
             e['name'] = file['name']
             if file['type'] == 'dir':
                 e['url'] = u'/github/{user}/{repo}/tree/{ref}/{path}'.format(
-                user=user, repo=repo, ref=ref, path=file['path']
+                    user=user, repo=repo, ref=ref, path=file['path']
                 )
                 e['url'] = quote(e['url'])
                 e['class'] = 'fa-folder-open'
                 dirs.append(e)
             elif file['name'].endswith('.ipynb'):
                 e['url'] = u'/github/{user}/{repo}/blob/{ref}/{path}'.format(
-                user=user, repo=repo, ref=ref, path=file['path']
+                    user=user, repo=repo, ref=ref, path=file['path']
                 )
                 e['url'] = quote(e['url'])
                 e['class'] = 'fa-book'
@@ -913,7 +917,7 @@ class GitHubTreeHandler(BaseHandler, RefMixin):
         html = self.render_template("treelist.html",
             entries=entries, breadcrumbs=breadcrumbs, github_url=github_url,
             user=user, repo=repo, ref=ref, path=path,
-            branches=branches, tags=tags
+            branches=branches, tags=tags, symbolic_ref=symbolic_ref
         )
         yield self.cache_and_finish(html)
 
@@ -956,6 +960,7 @@ class GitHubBlobHandler(RenderingHandler, RefMixin):
                                 user, repo, ref=ref, path=path
                             )
                             break
+                    raise err
                 else:
                     raise err
 
