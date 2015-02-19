@@ -840,8 +840,7 @@ class GitHubTreeHandler(BaseHandler, RefMixin):
                                 user, repo, path, ref=ref
                             )
                             break
-                    raise err
-                else:
+                if symbolic_ref is None:
                     raise err
 
         contents = json.loads(response_text(response))
@@ -940,6 +939,7 @@ class GitHubBlobHandler(RenderingHandler, RefMixin):
         blob_url = u"https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path),
         )
+        symbolic_ref = None
         with self.catch_client_error():
             try:
                 tree_entry = yield self.github_client.get_tree_entry(
@@ -956,17 +956,17 @@ class GitHubBlobHandler(RenderingHandler, RefMixin):
                             client = self.github_client
                             path = ref_path[len(other_ref["name"]) + 1:]
                             ref = other_ref["commit"]["sha"]
+                            symbolic_ref = other_ref["name"]
                             tree_entry = yield client.get_tree_entry(
                                 user, repo, ref=ref, path=path
                             )
                             break
-                    raise err
-                else:
+                if symbolic_ref is None:
                     raise err
 
         if tree_entry['type'] == 'tree':
             tree_url = "/github/{user}/{repo}/tree/{ref}/{path}/".format(
-                user=user, repo=repo, ref=ref, path=quote(path),
+                user=user, repo=repo, ref=symbolic_ref or ref, path=quote(path),
             )
             app_log.info("%s is a directory, redirecting to %s", self.request.path, tree_url)
             self.redirect(tree_url)
@@ -988,7 +988,7 @@ class GitHubBlobHandler(RenderingHandler, RefMixin):
         if path.endswith('.ipynb'):
             dir_path = path.rsplit('/', 1)[0]
             base_url = "/github/{user}/{repo}/tree/{ref}".format(
-                user=user, repo=repo, ref=ref,
+                user=user, repo=repo, ref=symbolic_ref or ref,
             )
             breadcrumbs = [{
                 'url' : base_url,
