@@ -51,6 +51,14 @@ class AsyncGitHubClient(object):
             )
         params = {} if params is None else params
         kwargs.setdefault('user_agent', 'Tornado-Async-GitHub-Client')
+
+        # #395
+        # https://developer.github.com/changes/2015-01-07-prepare-for-organization-permissions-changes/
+        kwargs.setdefault(
+            'headers',
+            {}
+        )['Accept'] = 'application/vnd.github.moondragon+json'
+
         if self.auth:
             params.update(self.auth)
         url = url_concat(url, params)
