@@ -70,7 +70,7 @@ class GithubClientTest(AsyncTestCase):
         path = 'extra-path'
         self.gh_client.get_tree_entry(user, repo, path)
         url = self._get_url()
-        correct_url = 'https://api.github.com/repos/username/my_awesome_repo/git/trees/extra-path'
+        correct_url = 'https://api.github.com/repos/username/my_awesome_repo/git/trees/master'
         self.assertStartsWith(url, correct_url)
 
     def test_get_gist(self):
