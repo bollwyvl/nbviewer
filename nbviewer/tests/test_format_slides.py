@@ -8,6 +8,7 @@
 import re
 
 import requests
+from tornado.escape import to_unicode
 
 from .base import NBViewerTestCase
 from ..providers.local.tests.test_localfile import LocalFileDefaultTestCase
@@ -47,7 +48,7 @@ class SlidesGistTestCase(NBViewerTestCase):
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.content
-        self.assertTrue(re.match(r'<body.*<body>', html))
+        self.assertTrue(re.match(r'<body.*<body>', to_unicode(html)))
 
 
 class SlideLocalFileDefaultTestCase(LocalFileDefaultTestCase):
