@@ -31,7 +31,7 @@ def default_formats():
         perform any modifications to html and resources after nbconvert
     """
 
-    reveal_body = re.compile(r'.*<body>(.*)<script[^>]+head.min.*',
+    reveal_body = re.compile(r'.*?<body>(.*)<script[^>]+head.min.*',
                              flags=re.MULTILINE | re.DOTALL)
 
     return {

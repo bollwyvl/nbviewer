@@ -5,6 +5,8 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+import re
+
 import requests
 
 from .base import NBViewerTestCase
@@ -36,6 +38,16 @@ class SlidesGistTestCase(NBViewerTestCase):
             '/format/slides/gist/minrk/7518294/Untitled0.ipynb',
             html
         )
+
+    def test_slides_bokeh_css_484(self):
+        """ make sure we're only stripping the first, real <body>
+            and not the one in the injected script.
+        """
+        url = self.url('/format/slides/gist/anonymous/e588803187d8875a85dc')
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+        html = r.content
+        self.assertTrue(re.match(r'<body.*<body>', html))
 
 
 class SlideLocalFileDefaultTestCase(LocalFileDefaultTestCase):
