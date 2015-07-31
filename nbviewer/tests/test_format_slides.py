@@ -48,9 +48,9 @@ class SlidesGistTestCase(NBViewerTestCase):
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.content
-        self.assertTrue(re.match(r'<body.*<body>',
-                                 to_unicode(html),
-                                 re.DOTALL))
+        self.assertTrue(re.search(r'<body.*<body>',
+                                  to_unicode(html),
+                                  re.DOTALL))
 
 
 class SlideLocalFileDefaultTestCase(LocalFileDefaultTestCase):
