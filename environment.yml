@@ -23,6 +23,7 @@ dependencies:
 - nbformat
 - nodejs
 - nose
+- numpy
 - notebook
 - openssl
 - path.py
@@ -31,7 +32,6 @@ dependencies:
 - pickleshare
 - pip
 - ptyprocess
-- pycurl
 - pygments
 - python
 - python.app
@@ -56,6 +56,5 @@ dependencies:
   - jupyter-client
   - jupyter-core
   - newrelic
-  - pylibmc
   - urllib3
   - https://github.com/martinal/nbdime/archive/master.zip
