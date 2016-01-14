@@ -1,4 +1,6 @@
 name: nbviewer
+channels:
+- javascript
 dependencies:
 - appnope
 - coverage
@@ -19,6 +21,7 @@ dependencies:
 - mock
 - nbconvert
 - nbformat
+- nodejs
 - nose
 - notebook
 - openssl
@@ -55,4 +58,4 @@ dependencies:
   - newrelic
   - pylibmc
   - urllib3
-
+  - https://github.com/martinal/nbdime/archive/master.zip
