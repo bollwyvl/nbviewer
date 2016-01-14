@@ -1,0 +1,3 @@
+[submodule "nbviewer/static/nbdiffstream"]
+	path = nbviewer/static/nbdiffstream
+	url = git@github.com:bollwyvl/nbdiffstream.git

@@ -1,0 +1,58 @@
+name: nbviewer
+dependencies:
+- appnope
+- coverage
+- curl
+- decorator
+- funcsigs
+- futures
+- ipykernel
+- ipython
+- ipython_genutils
+- jinja2
+- jsonschema
+- jupyter_client
+- jupyter_core
+- markdown
+- markupsafe
+- mistune
+- mock
+- nbconvert
+- nbformat
+- nose
+- notebook
+- openssl
+- path.py
+- pbr
+- pexpect
+- pickleshare
+- pip
+- ptyprocess
+- pycurl
+- pygments
+- python
+- python.app
+- pyzmq
+- readline
+- requests
+- setuptools
+- simplegeneric
+- six
+- sqlite
+- terminado
+- tk
+- tornado
+- traitlets
+- wheel
+- xz
+- zlib
+- pip:
+  - elasticsearch
+  - invoke
+  - ipython-genutils
+  - jupyter-client
+  - jupyter-core
+  - newrelic
+  - pylibmc
+  - urllib3
+
